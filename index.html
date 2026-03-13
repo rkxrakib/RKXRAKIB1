@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Orange Earn App 🍊</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        :root {
+            --primary: #FF4D00; --secondary: #FFB800; --dark-bg: #0F172A; --card-bg: #1E293B; --text: #F8FAFC;
+        }
+        * { margin:0; padding:0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--dark-bg); color: var(--text); padding-bottom: 80px; }
+        
+        /* Loader */
+        #loader { position:fixed; inset:0; background: var(--dark-bg); z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #334155; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Profile Header */
+        .header { padding: 40px 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; }
+        #u-photo { width: 90px; height: 90px; border-radius: 50%; border: 4px solid #fff; margin-bottom: 10px; }
+        .limit-badge { background: #fff; color: var(--primary); padding: 5px 15px; border-radius: 20px; font-weight: 700; display: inline-block; margin-top: 10px; }
+
+        .page { display: none; padding: 20px; animation: slideIn 0.3s ease-out; }
+        .page.active { display: block; }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .card { background: var(--card-bg); padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; font-family: inherit; cursor: pointer; transition: 0.2s; background: var(--primary); color: white; }
+        .btn:active { transform: scale(0.98); }
+
+        /* Nav Bar */
+        .navbar { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: var(--card-bg); display: flex; padding: 15px 0; border-top: 1px solid #334155; }
+        .nav-item { flex: 1; text-align: center; color: #64748B; font-size: 0.8rem; cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item i { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+
+        /* Task specific */
+        .task-row { display: flex; align-items: center; justify-content: space-between; }
+        .task-icon { width: 45px; height: 45px; background: #334155; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--secondary); font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+<div id="loader"><div class="spinner"></div><p style="margin-top:15px">🍊 Connecting Orange DB...</p></div>
+
+<div class="header">
+    <img id="u-photo" src="https://via.placeholder.com/90">
+    <h2 id="u-name">Loading...</h2>
+    <div class="limit-badge">Limits: <span id="u-limits">0</span></div>
+</div>
+
+<div id="home" class="page active">
+    <h3>🎯 Daily Tasks</h3>
+    <div class="card">
+        <div class="task-row">
+            <div style="display:flex; align-items:center">
+                <div class="task-icon"><i class="fas fa-play"></i></div>
+                <div><b>Watch Video Ad</b><br><small>Earn +1 limit instantly</small></div>
+            </div>
+            <button class="btn" style="width:auto; padding: 8px 15px" onclick="watchAd()">Watch</button>
+        </div>
+    </div>
+</div>
+
+<div id="refer" class="page">
+    <h3>👥 Referral System</h3>
+    <div class="card">
+        <p>Your unique referral link:</p>
+        <input type="text" id="ref-link" readonly style="width:100%; background:#0F172A; color:var(--secondary); border:1px dashed var(--primary); padding:10px; border-radius:8px; margin:10px 0;">
+        <button class="btn" onclick="copyLink()">Copy Link</button>
+    </div>
+    <div class="card" style="text-align: center;">
+        <small>Total Referrals</small>
+        <h2 id="u-ref-count" style="color:var(--secondary)">0</h2>
+    </div>
+</div>
+
+<div id="profile" class="page">
+    <h3>👤 Your Account</h3>
+    <div class="card">
+        <p>UID: <span id="p-uid">...</span></p>
+        <p>Joined: <span id="p-joined">...</span></p>
+    </div>
+</div>
+
+<div class="navbar">
+    <div class="nav-item active" onclick="switchPage('home', this)"><i class="fas fa-house"></i>Home</div>
+    <div class="nav-item" onclick="switchPage('refer', this)"><i class="fas fa-users"></i>Refer</div>
+    <div class="nav-item" onclick="switchPage('profile', this)"><i class="fas fa-user"></i>Profile</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    const firebaseConfig = {
+        databaseURL: "https://rkxrakib-f0c58-default-rtdb.firebaseio.com/" // আপনার URL
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const user = tg.initDataUnsafe.user;
+
+    async function init() {
+        if(!user) {
+            document.body.innerHTML = "<h1>Please open in Telegram</h1>";
+            return;
+        }
+
+        tg.expand();
+        document.getElementById('u-name').innerText = user.first_name;
+        document.getElementById('u-photo').src = user.photo_url || 'https://via.placeholder.com/90';
+
+        // Realtime Listener
+        db.ref('users/' + user.id).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                document.getElementById('u-limits').innerText = data.limits || 0;
+                document.getElementById('u-ref-count').innerText = data.referrals || 0;
+                document.getElementById('p-uid').innerText = data.uid;
+                document.getElementById('p-joined').innerText = data.joined_at;
+                document.getElementById('ref-link').value = `https://t.me/your_bot_username?start=${user.id}`;
+            }
+            document.getElementById('loader').style.display = 'none';
+        });
+    }
+
+    function watchAd() {
+        const monetagLink = "https://your-monetag-direct-link.com"; // আপনার Monetag লিংক
+        tg.openLink(monetagLink);
+        
+        // Anti-cheat: Adding limit only after confirming back
+        tg.showConfirm("Did you watch the full ad?", (confirmed) => {
+            if(confirmed) {
+                db.ref('users/' + user.id + '/limits').set(firebase.database.ServerValue.increment(1));
+                tg.showAlert("Success! +1 Limit added.");
+            }
+        });
+    }
+
+    function copyLink() {
+        const copyText = document.getElementById("ref-link");
+        copyText.select();
+        document.execCommand("copy");
+        tg.showAlert("Link Copied!");
+    }
+
+    function switchPage(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+    }
+
+    init();
+</script>
+</body>
+</html>
