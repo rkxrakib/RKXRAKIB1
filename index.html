@@ -3,160 +3,621 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Orange Earn App 🍊</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Orange Pro - Earn Limits 🍊</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
     <style>
+        /* 
+        ========================================
+        PROFESSIONAL STYLING (THEME: DARK ORANGE)
+        ========================================
+        */
         :root {
-            --primary: #FF4D00; --secondary: #FFB800; --dark-bg: #0F172A; --card-bg: #1E293B; --text: #F8FAFC;
+            --primary: #FF7B00;
+            --primary-dark: #E66F00;
+            --bg-dark: #0A0F14;
+            --surface: #161D24;
+            --surface-light: #212B36;
+            --text-main: #FFFFFF;
+            --text-dim: #919EAB;
+            --danger: #FF4842;
+            --success: #54D62C;
+            --warning: #FFC107;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        * { margin:0; padding:0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: var(--dark-bg); color: var(--text); padding-bottom: 80px; }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* App Containers */
+        #app {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        /* Blocked Screen Style */
+        #blocked-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
         /* Loader */
-        #loader { position:fixed; inset:0; background: var(--dark-bg); z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #334155; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
 
-        /* Profile Header */
-        .header { padding: 40px 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; text-align: center; }
-        #u-photo { width: 90px; height: 90px; border-radius: 50%; border: 4px solid #fff; margin-bottom: 10px; }
-        .limit-badge { background: #fff; color: var(--primary); padding: 5px 15px; border-radius: 20px; font-weight: 700; display: inline-block; margin-top: 10px; }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--surface-light);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
 
-        .page { display: none; padding: 20px; animation: slideIn 0.3s ease-out; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Header UI */
+        .profile-section {
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, #FF4D00 100%);
+            border-bottom-left-radius: 35px;
+            border-bottom-right-radius: 35px;
+            box-shadow: 0 10px 30px rgba(255, 123, 0, 0.3);
+            text-align: center;
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.8);
+            margin-bottom: 12px;
+            object-fit: cover;
+        }
+
+        .balance-badge {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .balance-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        /* Main Content */
+        .page {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
         .page.active { display: block; }
-        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        .card { background: var(--card-bg); padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #334155; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; font-family: inherit; cursor: pointer; transition: 0.2s; background: var(--primary); color: white; }
-        .btn:active { transform: scale(0.98); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        /* Nav Bar */
-        .navbar { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: var(--card-bg); display: flex; padding: 15px 0; border-top: 1px solid #334155; }
-        .nav-item { flex: 1; text-align: center; color: #64748B; font-size: 0.8rem; cursor: pointer; }
+        h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Task Cards */
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid var(--surface-light);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+        }
+
+        .card:active { transform: scale(0.97); }
+
+        .icon-box {
+            width: 55px;
+            height: 55px;
+            background: var(--surface-light);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .card-info { flex: 1; }
+        .card-info b { font-size: 1.05rem; display: block; margin-bottom: 2px; }
+        .card-info small { color: var(--text-dim); font-size: 0.85rem; }
+
+        .action-btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* Progress Bar */
+        .timer-container {
+            width: 100%;
+            height: 6px;
+            background: var(--surface-light);
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .timer-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--primary);
+            transition: width 1s linear;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(22, 29, 36, 0.9);
+            backdrop-filter: blur(20px);
+            display: flex;
+            padding: 15px 5px;
+            border-top: 1px solid var(--surface-light);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
         .nav-item.active { color: var(--primary); }
-        .nav-item i { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+        .nav-item svg { width: 24px; height: 24px; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto; }
 
-        /* Task specific */
-        .task-row { display: flex; align-items: center; justify-content: space-between; }
-        .task-icon { width: 45px; height: 45px; background: #334155; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--secondary); font-size: 1.2rem; }
+        /* Referral System */
+        .ref-box {
+            background: #000;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed var(--primary);
+            color: var(--primary);
+            font-family: monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+
+        /* Custom Popup */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+            padding: 20px;
+        }
+
+        .popup-box {
+            background: var(--surface);
+            width: 100%;
+            max-width: 320px;
+            border-radius: 25px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid var(--surface-light);
+        }
+
+        .popup-box i { font-size: 3.5rem; margin-bottom: 20px; }
+        .popup-box h2 { margin-bottom: 10px; }
+        .popup-box p { color: var(--text-dim); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div id="loader"><div class="spinner"></div><p style="margin-top:15px">🍊 Connecting Orange DB...</p></div>
-
-<div class="header">
-    <img id="u-photo" src="https://via.placeholder.com/90">
-    <h2 id="u-name">Loading...</h2>
-    <div class="limit-badge">Limits: <span id="u-limits">0</span></div>
+<!-- Loader Screen -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p style="margin-top: 20px; letter-spacing: 2px;">SECURE CONNECTING...</p>
 </div>
 
-<div id="home" class="page active">
-    <h3>🎯 Daily Tasks</h3>
-    <div class="card">
-        <div class="task-row">
-            <div style="display:flex; align-items:center">
-                <div class="task-icon"><i class="fas fa-play"></i></div>
-                <div><b>Watch Video Ad</b><br><small>Earn +1 limit instantly</small></div>
-            </div>
-            <button class="btn" style="width:auto; padding: 8px 15px" onclick="watchAd()">Watch</button>
+<!-- Blocked Screen -->
+<div id="blocked-screen">
+    <i class="fas fa-user-shield" style="font-size: 5rem; color: var(--danger); margin-bottom: 20px;"></i>
+    <h1 style="color: var(--danger);">DEVICE LOCKED</h1>
+    <p style="margin-top: 15px; color: #888;">Multi-account detected! You can only use one account per device.</p>
+</div>
+
+<!-- Custom Notification Popup -->
+<div id="popup-overlay" class="popup-overlay">
+    <div class="popup-box">
+        <i id="popup-icon" class="fas fa-exclamation-triangle"></i>
+        <h2 id="popup-title">Warning</h2>
+        <p id="popup-msg">Please wait 15 seconds on the ad page.</p>
+        <button class="action-btn" style="width: 100%;" onclick="closePopup()">OK, GOT IT</button>
+    </div>
+</div>
+
+<div id="app">
+    <!-- Header -->
+    <header class="profile-section">
+        <img id="u-photo" src="https://via.placeholder.com/90" class="user-avatar" alt="User">
+        <h2 id="u-name">Loading Profile...</h2>
+        <div class="balance-badge">
+            <i class="fas fa-key" style="color: var(--primary);"></i>
+            <span class="balance-value" id="u-limits">0</span>
+            <small>LIMITS</small>
         </div>
-    </div>
+    </header>
+
+    <main>
+        <!-- Home Page (Earn) -->
+        <div id="home" class="page active">
+            <h3>💰 Earning Tasks</h3>
+            
+            <div class="card" onclick="handleAdRotation()">
+                <div class="icon-box"><i class="fas fa-bolt"></i></div>
+                <div class="card-info">
+                    <b>Fast Earning Ad</b>
+                    <small>Get +1 Limit per Ad</small>
+                    <div id="ad-timer" class="timer-container">
+                        <div id="timer-bar" class="timer-fill"></div>
+                    </div>
+                </div>
+                <button class="action-btn">CLAIM</button>
+            </div>
+
+            <div class="card" onclick="tg.showAlert('Daily Bonus Coming Soon!')">
+                <div class="icon-box"><i class="fas fa-gift"></i></div>
+                <div class="card-info">
+                    <b>Daily Reward</b>
+                    <small>Claim +5 Limits Daily</small>
+                </div>
+                <button class="action-btn" style="background: #333; color: #fff;">LOCKED</button>
+            </div>
+        </div>
+
+        <!-- Referral Page -->
+        <div id="refer" class="page">
+            <h3>👥 Invite & Earn</h3>
+            <div class="card" style="display: block; text-align: center;">
+                <p>Invite friends to Orange Bot and get +1 limit for every successful referral.</p>
+                <div class="ref-box" id="u-ref-link">https://t.me/loading...</div>
+                <button class="action-btn" style="width: 100%; margin-top: 15px;" onclick="copyReferral()">
+                    <i class="fas fa-copy"></i> COPY LINK
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="icon-box"><i class="fas fa-users"></i></div>
+                <div class="card-info">
+                    <b>Total Referrals</b>
+                    <small>People joined via your link</small>
+                </div>
+                <h2 id="u-ref-count" style="color: var(--primary);">0</h2>
+            </div>
+        </div>
+
+        <!-- Leaderboard Page -->
+        <div id="leaderboard" class="page">
+            <h3>🏆 Top Earners</h3>
+            <div id="leader-list">
+                <!-- Dynamic Data -->
+                <p style="text-align: center; color: #555; padding-top: 50px;">Fetching global ranking...</p>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="profile" class="page">
+            <h3>👤 User Details</h3>
+            <div class="card">
+                <div class="card-info">
+                    <p><b>User UID:</b> <span id="p-uid" style="color: var(--primary);">...</span></p>
+                    <p><b>Joined Date:</b> <span id="p-joined" style="color: var(--primary);">...</span></p>
+                    <p><b>Account Status:</b> <span style="color: var(--success);">Verified</span></p>
+                </div>
+            </div>
+            <button class="action-btn" style="width:100%; background: var(--danger); color: #fff;" onclick="tg.close()">
+                EXIT APP
+            </button>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('home', this)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z"/></svg>
+            Home
+        </div>
+        <div class="nav-item" onclick="showPage('refer', this)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            Invite
+        </div>
+        <div class="nav-item" onclick="showPage('leaderboard', this)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 11.63 21 9.55 21 7V6c0-1.1-.9-2-2-2zM5 7h2v3.38C5.61 9.97 5 8.56 5 7zm14 3.38c-1.01.41-2.13.56-3 .38V7h2v3.38z"/></svg>
+            Board
+        </div>
+        <div class="nav-item" onclick="showPage('profile', this)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Profile
+        </div>
+    </nav>
 </div>
 
-<div id="refer" class="page">
-    <h3>👥 Referral System</h3>
-    <div class="card">
-        <p>Your unique referral link:</p>
-        <input type="text" id="ref-link" readonly style="width:100%; background:#0F172A; color:var(--secondary); border:1px dashed var(--primary); padding:10px; border-radius:8px; margin:10px 0;">
-        <button class="btn" onclick="copyLink()">Copy Link</button>
-    </div>
-    <div class="card" style="text-align: center;">
-        <small>Total Referrals</small>
-        <h2 id="u-ref-count" style="color:var(--secondary)">0</h2>
-    </div>
-</div>
-
-<div id="profile" class="page">
-    <h3>👤 Your Account</h3>
-    <div class="card">
-        <p>UID: <span id="p-uid">...</span></p>
-        <p>Joined: <span id="p-joined">...</span></p>
-    </div>
-</div>
-
-<div class="navbar">
-    <div class="nav-item active" onclick="switchPage('home', this)"><i class="fas fa-house"></i>Home</div>
-    <div class="nav-item" onclick="switchPage('refer', this)"><i class="fas fa-users"></i>Refer</div>
-    <div class="nav-item" onclick="switchPage('profile', this)"><i class="fas fa-user"></i>Profile</div>
-</div>
-
+<!-- Firebase & Monetag SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+<!-- Monetag SDK 1 -->
+<script src='//libtl.com/sdk.js' data-zone='10154237' data-sdk='show_10154237'></script>
+<!-- Monetag SDK 2 -->
+<script src='//libtl.com/sdk.js' data-zone='9957036' data-sdk='show_9957036'></script>
+
 <script>
+    /* 
+    ========================================
+    CORE JAVASCRIPT LOGIC
+    ========================================
+    */
     const tg = window.Telegram.WebApp;
     const firebaseConfig = {
-        databaseURL: "https://rkxrakib-f0c58-default-rtdb.firebaseio.com/" // আপনার URL
+        databaseURL: "https://rkxrakib-f0c58-default-rtdb.firebaseio.com/" // আপনার ডাটাবেস লিংক দিন
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const user = tg.initDataUnsafe.user;
+    
+    // User Stats & State
+    let user = tg.initDataUnsafe.user;
+    let dbUser = {};
+    let isWatching = false;
+    let adIndex = 0;
+    let warningCount = 0;
 
-    async function init() {
+    // Ad Config
+    const adPool = [
+        { type: 'link', url: 'https://omg10.com/4/10158313' },
+        { type: 'sdk', zone: '10154237' },
+        { type: 'link', url: 'https://omg10.com/4/10180945' },
+        { type: 'sdk', zone: '9957036' }
+    ];
+
+    async function initApp() {
         if(!user) {
             document.body.innerHTML = "<h1>Please open in Telegram</h1>";
             return;
         }
 
         tg.expand();
-        document.getElementById('u-name').innerText = user.first_name;
-        document.getElementById('u-photo').src = user.photo_url || 'https://via.placeholder.com/90';
+        tg.ready();
 
-        // Realtime Listener
-        db.ref('users/' + user.id).on('value', (snapshot) => {
-            const data = snapshot.val();
-            if(data) {
-                document.getElementById('u-limits').innerText = data.limits || 0;
-                document.getElementById('u-ref-count').innerText = data.referrals || 0;
-                document.getElementById('p-uid').innerText = data.uid;
-                document.getElementById('p-joined').innerText = data.joined_at;
-                document.getElementById('ref-link').value = `https://t.me/your_bot_username?start=${user.id}`;
+        // Security: Multi-account prevention
+        const storageToken = localStorage.getItem('orange_device_token');
+        if (storageToken && storageToken !== user.id.toString()) {
+            document.getElementById('blocked-screen').style.display = 'flex';
+            document.getElementById('app').style.display = 'none';
+            return;
+        }
+        localStorage.setItem('orange_device_token', user.id);
+
+        // Fetch Data from Firebase
+        db.ref('users/' + user.id).on('value', (snap) => {
+            dbUser = snap.val();
+            if(dbUser) {
+                updateUI();
+            } else {
+                // This shouldn't happen if Python bot registers them first
+                tg.showAlert("User not registered in database!");
             }
             document.getElementById('loader').style.display = 'none';
         });
+
+        loadLeaderboard();
     }
 
-    function watchAd() {
-        const monetagLink = "https://your-monetag-direct-link.com"; // আপনার Monetag লিংক
-        tg.openLink(monetagLink);
+    function updateUI() {
+        document.getElementById('u-name').innerText = user.first_name + " " + (user.last_name || "");
+        document.getElementById('u-photo').src = user.photo_url || 'https://via.placeholder.com/90';
+        document.getElementById('u-limits').innerText = dbUser.limits || 0;
+        document.getElementById('u-ref-count').innerText = dbUser.referrals || 0;
+        document.getElementById('p-uid').innerText = user.id;
+        document.getElementById('p-joined').innerText = dbUser.joined_at || "New User";
+        document.getElementById('u-ref-link').innerText = `https://t.me/websourcecodedownloaderbot?start=${user.id}`;
+    }
+
+    /* Ad Logic & Anti-Cheat */
+    function handleAdRotation() {
+        if(isWatching) return;
         
-        // Anti-cheat: Adding limit only after confirming back
-        tg.showConfirm("Did you watch the full ad?", (confirmed) => {
-            if(confirmed) {
-                db.ref('users/' + user.id + '/limits').set(firebase.database.ServerValue.increment(1));
-                tg.showAlert("Success! +1 Limit added.");
+        const currentAd = adPool[adIndex];
+        isWatching = true;
+        
+        // UI Feedback
+        const timerContainer = document.getElementById('ad-timer');
+        const timerBar = document.getElementById('timer-bar');
+        timerContainer.style.display = 'block';
+        timerBar.style.width = '0%';
+
+        // Ad action
+        if(currentAd.type === 'link') {
+            tg.openLink(currentAd.url);
+        } else {
+            const sdkFunc = window['show_' + currentAd.zone];
+            if(typeof sdkFunc === 'function') sdkFunc();
+        }
+
+        // Start 15s Validation
+        let startTime = Date.now();
+        
+        // Progress bar animation
+        let progress = 0;
+        let interval = setInterval(() => {
+            progress += (100/15);
+            timerBar.style.width = progress + '%';
+            if(progress >= 100) clearInterval(interval);
+        }, 1000);
+
+        // Visibility check to see if they came back too early
+        const checkReturn = () => {
+            let elapsed = (Date.now() - startTime) / 1000;
+            
+            if(elapsed < 14) {
+                // Cheating detected
+                warningCount++;
+                showPopup("Anti-Cheat Warning", `You closed the ad too early! Please wait 15 seconds. (Warnings: ${warningCount}/3)`, "fa-exclamation-triangle");
+                resetAdState();
+            } else {
+                // Success
+                rewardUser();
             }
-        });
+        };
+
+        // If they switch back to the app, trigger check
+        window.addEventListener('focus', checkReturn, { once: true });
     }
 
-    function copyLink() {
-        const copyText = document.getElementById("ref-link");
-        copyText.select();
-        document.execCommand("copy");
-        tg.showAlert("Link Copied!");
+    function rewardUser() {
+        db.ref('users/' + user.id + '/limits').set(firebase.database.ServerValue.increment(1));
+        tg.HapticFeedback.notificationOccurred('success');
+        
+        // Rotate index
+        adIndex = (adIndex + 1) % adPool.length;
+        
+        showPopup("Task Complete", "+1 Download Limit added to your account!", "fa-check-circle", "var(--success)");
+        resetAdState();
     }
 
-    function switchPage(id, el) {
+    function resetAdState() {
+        isWatching = false;
+        document.getElementById('ad-timer').style.display = 'none';
+        document.getElementById('timer-bar').style.width = '0%';
+    }
+
+    /* UI Navigation */
+    function showPage(pageId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+        document.getElementById(pageId).classList.add('active');
         el.classList.add('active');
     }
 
-    init();
+    /* Popup System */
+    function showPopup(title, msg, icon, iconColor = "var(--warning)") {
+        document.getElementById('popup-title').innerText = title;
+        document.getElementById('popup-msg').innerText = msg;
+        const i = document.getElementById('popup-icon');
+        i.className = "fas " + icon;
+        i.style.color = iconColor;
+        document.getElementById('popup-overlay').style.display = 'flex';
+    }
+
+    function closePopup() {
+        document.getElementById('popup-overlay').style.display = 'none';
+    }
+
+    function copyReferral() {
+        const link = document.getElementById('u-ref-link').innerText;
+        const el = document.createElement('textarea');
+        el.value = link;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        tg.showAlert("Referral Link Copied!");
+    }
+
+    async function loadLeaderboard() {
+        const list = document.getElementById('leader-list');
+        db.ref('users').orderByChild('limits').limitToLast(10).once('value', (snap) => {
+            let users = [];
+            snap.forEach(child => { users.push(child.val()); });
+            users.reverse();
+            
+            list.innerHTML = "";
+            users.forEach((u, i) => {
+                list.innerHTML += `
+                    <div class="card">
+                        <div class="rank" style="font-size: 1.2rem; font-weight: 700; width: 30px;">#${i+1}</div>
+                        <img src="${u.photo_url || 'https://via.placeholder.com/40'}" style="width: 40px; height:40px; border-radius: 50%;">
+                        <div class="card-info">
+                            <b>${u.first_name}</b>
+                        </div>
+                        <div style="color: var(--primary); font-weight:700;">${u.limits} Keys</div>
+                    </div>
+                `;
+            });
+        });
+    }
+
+    // Initialize
+    initApp();
+
 </script>
+
 </body>
-</html>
+    </html>
