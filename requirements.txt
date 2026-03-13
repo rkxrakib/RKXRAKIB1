@@ -1,1 +1,4 @@
-pip install python-telegram-bot firebase-admin requests beautifulsoup4
+python-telegram-bot
+firebase-admin
+requests
+beautifulsoup4
